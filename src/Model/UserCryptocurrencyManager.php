@@ -25,16 +25,43 @@ class UserCryptocurrencyManager
     public function addCryptocurrencyToUser(int $userId, Cryptocurrency $cryptocurrency, int $amount): void
     {
         // TODO
+
+        $statement = $this->database->prepare('
+                                        INSERT INTO user_cryptocurrencies (user_id, cryptocurrency_id, amount) 
+                                        VALUES (:user_id, :cryptocurrency_id, :amount) 
+                                        ON DUPLICATE KEY UPDATE amount = amount + :amount
+                                    ');
+        $binds = [
+            ':user_id' => $userId,
+            ':cryptocurrency_id' => $cryptocurrency->getId(),
+            ':amount' => $amount
+        ];
+        $statement->execute($binds);
+
     }
+
 
     public function subtractCryptocurrencyFromUser(int $userId, Cryptocurrency $cryptocurrency, int $amount): void
     {
-        // TODO
+        $statement = $this->database->prepare('
+                                        UPDATE user_cryptocurrencies
+                                        SET amount = amount - :amount 
+                                        WHERE user_id = :user_id AND cryptocurrency_id = :cryptocurrency_id
+                                    ');
+        $binds = [
+            ':user_id' => $userId,
+            ':cryptocurrency_id' => $cryptocurrency->getId(),
+            ':amount' => $amount
+        ];
+        $statement->execute($binds);
     }
 
     public function getUserCryptocurrency(int $userId, string $cryptocurrencyId): ?UserCryptocurrency
     {
-        $query = $this->database->prepare('SELECT * FROM user_cryptocurrencies WHERE user_id = :user_id AND cryptocurrency_id = :cryptocurrency_id');
+        $query = $this->database->prepare(
+                            'SELECT * 
+                                   FROM user_cryptocurrencies 
+                                   WHERE user_id = :user_id  AND cryptocurrency_id = :cryptocurrency_id');
         $query->bindParam(':user_id', $userId, Database::PARAM_INT);
         $query->bindParam(':cryptocurrency_id', $cryptocurrencyId, Database::PARAM_STR);
         $query->execute();

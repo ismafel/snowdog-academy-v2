@@ -55,4 +55,18 @@ class UserManager
     {
         return hash('sha512', $password);
     }
+
+    public function addFundsToCustomer($id, $funds)
+    {
+        $statement = $this->database->prepare('
+                                        UPDATE users
+                                        SET funds = funds + :funds
+                                        WHERE id = :id
+                                    ');
+        $binds = [
+            ':id' => $id,
+            ':funds' => $funds
+        ];
+        $statement->execute($binds);
+    }
 }
