@@ -46,5 +46,15 @@ class CryptocurrencyManager
     public function updatePrice(string $id, float $price): void
     {
         // TODO
+        $statement = $this->database->prepare('
+                                        UPDATE cryptocurrencies
+                                        SET price = :price
+                                        WHERE id = :id
+                                    ');
+        $binds = [
+            ':id' => $id,
+            ':price' => $price
+        ];
+        $statement->execute($binds);
     }
 }
