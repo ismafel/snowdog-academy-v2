@@ -37,11 +37,16 @@ class Cryptos
     public function buyPost(string $id): void
     {
         try {
+
             $user = $this->verifyLogin();
             $crypto = $this->verifyCryptocurrency($id);
             $amount = $_POST['amount'];
-            $this->userCryptocurrencyManager->addCryptocurrencyToUser($user->getId(), $crypto, $amount);
-            $_SESSION['flash'] = "You have bought {$amount} {$crypto->getSymbol()} successfully";
+            if ($user->getFunds() < $amount) {
+                throw new \Exception("You do not have enough funds to perform this action");
+            } else {
+                $this->userCryptocurrencyManager->addCryptocurrencyToUser($user->getId(), $crypto, $amount);
+                $_SESSION['flash'] = "You have bought $amount {$crypto->getSymbol()} successfully";
+            }
         } catch (\Exception $e) {
             $_SESSION['flash'] = "There has been an error processing your request: {$e->getMessage()}";
         }
@@ -63,6 +68,7 @@ class Cryptos
             $amount = $_POST['amount'];
             $this->userCryptocurrencyManager->subtractCryptocurrencyFromUser($user->getId(), $crypto, $amount);
             $_SESSION['flash'] = "You have sold {$amount} {$crypto->getSymbol()} successfully";
+
         } catch (\Exception $e) {
             $_SESSION['flash'] = "There has been an error processing your request: {$e->getMessage()}";
         }
